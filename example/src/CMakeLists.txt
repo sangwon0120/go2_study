@@ -39,6 +39,19 @@ find_package(std_msgs REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
 
+#연습용 ------------------------
+add_executable(practice src/sangw/practice.cpp src/common/ros2_sport_client.cpp)
+ament_target_dependencies(practice ${DEPENDENCY_LIST})
+install(TARGETS practice DESTINATION lib/${PROJECT_NAME})
+
+add_executable(state_machine src/sangw/state_machine_test.cpp src/common/ros2_sport_client.cpp)
+ament_target_dependencies(state_machine ${DEPENDENCY_LIST})
+install(TARGETS state_machine DESTINATION lib/${PROJECT_NAME})
+
+add_executable(feedback_based src/sangw/feedback_based.cpp src/common/ros2_sport_client.cpp)
+ament_target_dependencies(feedback_based ${DEPENDENCY_LIST})
+install(TARGETS feedback_based DESTINATION lib/${PROJECT_NAME})
+#---------------------
 add_executable(low_level_ctrl src/low_level_ctrl.cpp src/common/motor_crc.cpp)
 add_executable(low_level_ctrl_hg src/h1-2/lowlevel/low_level_ctrl_hg.cpp src/common/motor_crc_hg.cpp)
 add_executable(g1_low_level_example src/g1/lowlevel/g1_low_level_example.cpp src/common/motor_crc_hg.cpp)

@@ -29,17 +29,17 @@ struct ServiceState {
     int32_t protect;
 };
 
-struct ServiceSwitchRequest {
+struct ServiceSwitchRequest { // 서비스 스위치 요청을 표헌하기 위한 구조체. 
     std::string name;
     int32_t swit;
 };
 
-struct ServiceSwitchResponse {
+struct ServiceSwitchResponse { // 서비스 스위치 응답을 담는 구조체 
     std::string name;
     int32_t status{};
 };
 
-struct SetReportFreqRequest {
+struct SetReportFreqRequest { // 리포트 주기 설정 요청 구조체. 
     int32_t interval;
     int32_t duration;
 };
