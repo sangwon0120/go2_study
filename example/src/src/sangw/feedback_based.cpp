@@ -1,6 +1,7 @@
 #include <chrono>
 #include <memory>
 #include <cmath>
+#include "std_msgs/msg/bool.hpp"
 
 #include "common/ros2_sport_client.h" // SportClient 클래스 선언이 들어있는 헤더파일. 
 #include "rclcpp/rclcpp.hpp"
@@ -14,9 +15,8 @@ enum class RobotState {
     TURN_LEFT,
     STOP2,
     FORWARD2,
-    DONE,
     AVOID_STOP,
-    AVOID_TURN
+    DONE
 };
 class Go2Test : public rclcpp::Node { // 노드를 상속 받겠다
     public:
@@ -37,6 +37,12 @@ class Go2Test : public rclcpp::Node { // 노드를 상속 받겠다
                 "lf/sportmodestate", // 구독할 토픽
                 10, // 큐 크기 
                 std::bind(&Go2Test::state_callback,this, std::placeholders::_1) // callback 함수 연결 
+            );
+
+            obstacle_sub_ = this->create_subscription<std_msgs::msg::Bool>(
+                "/obstacle_detected",
+                10,
+                std::bind(&Go2Test::obstacle_callback, this, std::placeholders::_1)
             );
 
         }
@@ -164,7 +170,7 @@ class Go2Test : public rclcpp::Node { // 노드를 상속 받겠다
                 RCLCPP_INFO(this->get_logger(),"STOP2->FORWARD2");
                 state_start_time_ = this->now();
             }
-
+            
             else if(current_state_ == RobotState::FORWARD2 
                     && forward2_distance_from_start() >= 1.0f 
                     && forward2_initialized_){
@@ -266,6 +272,13 @@ class Go2Test : public rclcpp::Node { // 노드를 상속 받겠다
                 );
             }
 
+            // FORWARD2일때 장애물을 마주하면 AVOID_STOP으로 상태 전이. 
+            else if (current_state_ == RobotState::FORWARD2 && obstacle_detected_) {
+                RCLCPP_WARN(this->get_logger(), "Obstacle detected during FORWARD2 -> AVOID_STOP");
+                current_state_ = RobotState::AVOID_STOP;
+                state_start_time_ = this->now();
+            }
+
 
             /************************************************************
             *************************************************************
@@ -315,6 +328,11 @@ class Go2Test : public rclcpp::Node { // 노드를 상속 받겠다
                 RCLCPP_INFO(this->get_logger(), "Last StopMove sent");
                 timer_->cancel();
             }
+
+            else if(current_state_ == RobotState::AVOID_STOP){
+                sport_client_.StopMove(req);
+                RCLCPP_INFO(this->get_logger(), "Obstacle detected");
+            }
             
         }
 
@@ -323,6 +341,9 @@ class Go2Test : public rclcpp::Node { // 노드를 상속 받겠다
             state_received_= true;
         }
 
+        void obstacle_callback(const std_msgs::msg::Bool::SharedPtr msg) {
+            obstacle_detected_ = msg->data;
+        }
         float planar_speed() const {
             float vx = latest_state_.velocity[0];
             float vy = latest_state_.velocity[1];
@@ -405,6 +426,9 @@ class Go2Test : public rclcpp::Node { // 노드를 상속 받겠다
         float forward1_start_x_ = 0.0f;
         float forward1_start_y_ = 0.0f;
         bool forward1_initialized_ = false;
+
+        rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr obstacle_sub_;
+        bool obstacle_detected_ = false;
 };
 
 

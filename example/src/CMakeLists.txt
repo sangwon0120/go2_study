@@ -59,7 +59,7 @@ install(TARGETS feedback_based DESTINATION lib/${PROJECT_NAME})
 
 
 add_executable(go2_stream_viewer src/sangw/go2_stream_viewer.cpp)
-ament_target_dependencies(go2_stream_viewer rclcpp)
+ament_target_dependencies(go2_stream_viewer rclcpp std_msgs)
 target_link_libraries(go2_stream_viewer ${OpenCV_LIBS})
 install(TARGETS go2_stream_viewer DESTINATION lib/${PROJECT_NAME})
 
