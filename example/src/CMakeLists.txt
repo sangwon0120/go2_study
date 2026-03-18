@@ -39,6 +39,11 @@ find_package(std_msgs REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
 
+# --- (새로 추가할 부분: 의존성 찾기) ---
+find_package(OpenCV REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavcodec libavutil libswscale)
+
 #연습용 ------------------------
 add_executable(practice src/sangw/practice.cpp src/common/ros2_sport_client.cpp)
 ament_target_dependencies(practice ${DEPENDENCY_LIST})
@@ -51,6 +56,22 @@ install(TARGETS state_machine DESTINATION lib/${PROJECT_NAME})
 add_executable(feedback_based src/sangw/feedback_based.cpp src/common/ros2_sport_client.cpp)
 ament_target_dependencies(feedback_based ${DEPENDENCY_LIST})
 install(TARGETS feedback_based DESTINATION lib/${PROJECT_NAME})
+
+
+add_executable(go2_stream_viewer src/sangw/go2_stream_viewer.cpp)
+ament_target_dependencies(go2_stream_viewer rclcpp)
+target_link_libraries(go2_stream_viewer ${OpenCV_LIBS})
+install(TARGETS go2_stream_viewer DESTINATION lib/${PROJECT_NAME})
+
+# --- (기존에서 수정/확장될 부분) ---
+add_executable(camera_test src/sangw/camera_test.cpp)
+
+# ament_target_dependencies에 OpenCV와 FFMPEG를 직접 넣지 않고, target_link_libraries를 사용합니다.
+ament_target_dependencies(camera_test rclcpp unitree_go)
+target_link_libraries(camera_test ${OpenCV_LIBRARIES} PkgConfig::FFMPEG)
+
+install(TARGETS camera_test DESTINATION lib/${PROJECT_NAME})
+
 #---------------------
 add_executable(low_level_ctrl src/low_level_ctrl.cpp src/common/motor_crc.cpp)
 add_executable(low_level_ctrl_hg src/h1-2/lowlevel/low_level_ctrl_hg.cpp src/common/motor_crc_hg.cpp)

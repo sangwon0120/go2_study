@@ -15,7 +15,8 @@ enum class RobotState {
     STOP2,
     FORWARD2,
     DONE,
-    EMERGENCY_STOP
+    AVOID_STOP,
+    AVOID_TURN
 };
 class Go2Test : public rclcpp::Node { // 노드를 상속 받겠다
     public:
@@ -86,16 +87,23 @@ class Go2Test : public rclcpp::Node { // 노드를 상속 받겠다
             *************************************************************
             *************************************************************
             *************************************************************/
-            if((current_state_ == RobotState::FORWARD1 || current_state_ == RobotState::FORWARD2)&&
-                    obstacle_too_close()){
-                        current_state_ = RobotState::EMERGENCY_STOP;
-                        RCLCPP_WARN(
-                            this->get_logger(),
-                            "Obstacle too close! EMERGENCY_STOP triggered.  min dist = %.3f",
-                            min_obstacle_distance()
-                        );
-                        state_start_time_=this->now();
-                    }
+            
+            //range_obstacle 확인하는 로그 출력 구문 
+
+            /*if (current_state_ == RobotState::FORWARD1 ||
+                current_state_ == RobotState::FORWARD2) {
+                RCLCPP_WARN_THROTTLE(
+                    this->get_logger(),
+                    *this->get_clock(),
+                    500,
+                    "range_obstacle = [%.3f, %.3f, %.3f, %.3f], min_valid = %.3f",
+                    latest_state_.range_obstacle[0],
+                    latest_state_.range_obstacle[1],
+                    latest_state_.range_obstacle[2],
+                    latest_state_.range_obstacle[3],
+                    min_obstacle_distance()
+                );
+            }*/
             if(current_state_== RobotState::FORWARD1 && 
                     forward1_distance_from_start() >= 1.0f &&
                     forward1_initialized_){
@@ -307,15 +315,7 @@ class Go2Test : public rclcpp::Node { // 노드를 상속 받겠다
                 RCLCPP_INFO(this->get_logger(), "Last StopMove sent");
                 timer_->cancel();
             }
-            else if(current_state_ == RobotState::EMERGENCY_STOP){
-                sport_client_.StopMove(req);
-                RCLCPP_WARN_THROTTLE(
-                    this->get_logger(),
-                    *this->get_clock(),
-                    500,
-                    "Emergency stop activate"
-                );
-            }
+            
         }
 
         void state_callback(const unitree_go::msg::SportModeState::SharedPtr msg){
