@@ -38,6 +38,7 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(unitree_go2_vision_msgs REQUIRED)
 
 # --- (새로 추가할 부분: 의존성 찾기) ---
 find_package(OpenCV REQUIRED)
@@ -53,15 +54,15 @@ add_executable(state_machine src/sangw/state_machine_test.cpp src/common/ros2_sp
 ament_target_dependencies(state_machine ${DEPENDENCY_LIST})
 install(TARGETS state_machine DESTINATION lib/${PROJECT_NAME})
 
-add_executable(feedback_based src/sangw/feedback_based.cpp src/common/ros2_sport_client.cpp)
-ament_target_dependencies(feedback_based ${DEPENDENCY_LIST})
-install(TARGETS feedback_based DESTINATION lib/${PROJECT_NAME})
+add_executable(go2_ai_controller src/sangw/go2_ai_controller.cpp src/common/ros2_sport_client.cpp)
+ament_target_dependencies(go2_ai_controller ${DEPENDENCY_LIST} unitree_go2_vision_msgs)
+install(TARGETS go2_ai_controller DESTINATION lib/${PROJECT_NAME})
 
 
-add_executable(go2_stream_viewer src/sangw/go2_stream_viewer.cpp)
-ament_target_dependencies(go2_stream_viewer rclcpp std_msgs)
-target_link_libraries(go2_stream_viewer ${OpenCV_LIBS})
-install(TARGETS go2_stream_viewer DESTINATION lib/${PROJECT_NAME})
+add_executable(go2_vision_node src/sangw/go2_vision_node.cpp src/sangw/YOLOInferencer.cpp)
+ament_target_dependencies(go2_vision_node rclcpp std_msgs unitree_go2_vision_msgs)
+target_link_libraries(go2_vision_node ${OpenCV_LIBS})
+install(TARGETS go2_vision_node DESTINATION lib/${PROJECT_NAME})
 
 # --- (기존에서 수정/확장될 부분) ---
 add_executable(camera_test src/sangw/camera_test.cpp)
