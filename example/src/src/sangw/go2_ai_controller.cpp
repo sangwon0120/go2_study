@@ -72,19 +72,19 @@ class Go2AIController : public rclcpp::Node {
     float target_distance = 0.0F;
     float target_center_x = 0.0F;
 
-    // AI가 판단한 객체 정보 기반으로 판단 (ex. 'bottle' 찾기)
+    // AI가 판단한 객체 정보 기반으로 판단 (ex. 'person' 찾기)
     for (const auto& det : latest_detections_.detections) {
-      if (det.class_name == "bottle" && det.score > 0.5F) {
+      if (det.class_name == "person" && det.score > 0.5F) {
         target_detected = true;
         target_distance = det.distance;
         target_center_x = det.center_x;
-        break; // 가장 먼저 발견된 물병을 추적
+        break; // 가장 먼저 발견된 사람을 추적
       }
     }
 
     // 상태 전이 논리
     if (target_detected) {
-      if (target_distance < 0.5F) { // 물병용 50cm 정지 기준
+      if (target_distance < 1.0F) { // 사람용 100cm 정지 기준
         current_state_ = RobotState::STOPPED;
       } else {
         current_state_ = RobotState::APPROACHING;
@@ -106,12 +106,12 @@ class Go2AIController : public rclcpp::Node {
       
       sport_client_.Move(req, 0.3F, 0.0F, yaw_cmd);
       RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
-                           "물병 추적 중... 거리: %.2fm, Yaw 속도 명령: %.3f", target_distance, yaw_cmd);
+                           "사람 추적 중... 거리: %.2fm, Yaw 속도 명령: %.3f", target_distance, yaw_cmd);
                            
     } else if (current_state_ == RobotState::SEARCHING) {
       sport_client_.Move(req, 0.0F, 0.0F, 0.4F);
       RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
-                           "물병을 탐색하기 위해 회전 중입니다...");
+                           "사람을 탐색하기 위해 회전 중입니다...");
     }
   }
 
